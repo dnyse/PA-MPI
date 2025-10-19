@@ -1,0 +1,20 @@
+#!/bin/bash -l
+#SBATCH --job-name=assignment01
+#SBATCH --output=job-%j.out
+#SBATCH --error=job-%j.err
+#SBATCH --partition=singlenode
+#SBATCH --nodes=1
+#SBATCH --ntasks=1
+#SBATCH --cpus-per-task=1
+#SBATCH --time=00:05:00
+#SBATCH --export=NONE
+
+unset SLURM_EXPORT_ENV
+
+module load intel
+
+make clean
+make
+
+srun ./exe-ICX "FRITZ"
+
