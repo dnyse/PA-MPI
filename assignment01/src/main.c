@@ -16,14 +16,15 @@
 
 #define HOSTNAME_LENGTH 256
 
-int main(int argc, char** argv) {
-	char hostname[HOSTNAME_LENGTH];
-	const char* name = "World";
-	if(argc > 1){
-	  name = argv[1];
-	}
-	gethostname(hostname, HOSTNAME_LENGTH);
-	printf("Hello %s from %s!\n", name, hostname);
+int main(int argc, char** argv)
+{
+    char hostname[HOSTNAME_LENGTH];
+    const char* name = "World";
+    if (argc > 1) {
+        name = argv[1];
+    }
+    gethostname(hostname, HOSTNAME_LENGTH);
+    printf("Hello %s from %s!\n", name, hostname);
 
-       	return EXIT_SUCCESS; 
+    return EXIT_SUCCESS;
 }
