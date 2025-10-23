@@ -13,10 +13,9 @@
 
 #include "timing.h"
 
-#define N 50
+#define N 10000
 
-double serial_integrate(double, double);
-double parallel_integrate(double, double);
+double integrate(double, double);
 double f(double x);
 
 int main(int argc, char **argv) {
@@ -24,7 +23,7 @@ int main(int argc, char **argv) {
   double Pi;
 
   wcs = getTimeStamp();
-  Pi = serial_integrate(0.0, 1.0);
+  Pi = integrate(0.0, 1.0);
   wce = getTimeStamp();
 
   printf("Pi=%.15lf in %.3lf s \n", Pi, wce - wcs);
@@ -33,7 +32,7 @@ int main(int argc, char **argv) {
 
 double f(double x) { return sqrt(1 - x * x); }
 
-double serial_integrate(double a, double b) {
+double integrate(double a, double b) {
 
   /*
 
@@ -46,8 +45,10 @@ double serial_integrate(double a, double b) {
 
   double delta_x = (b - a) / N;
   double sum = 0.0;
+  double x;
 
-  for (double x = a; x < b; x += delta_x) {
+  for (double i = 0; i < N; ++i) {
+    x = a + (i + 0.5) * delta_x;
     sum += f(x);
   }
 
