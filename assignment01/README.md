@@ -24,23 +24,31 @@ header-includes: |
 Solution provided in code and can be found in the zip file.
 
 ## Part 2
-The appropriate data points are circled in red and in the range between 1 to 20 processes. These points show the expected near-linear scaling, where the speedup increases almost proportionally to the number of processes. Furthermore, the socket has 20 cores, which use very fast communication inside the socket, hence have minimal communication overhead.
-
-On the otherhand, increasing the number of processes beyond 20 we would need to add additional nodes, which would introduce significant network communication overhead, which are not present in the plot. It would be impossible to observe this linear scaling in the results, after exceeding 20 processes.
+The appropriate points are circled in red, representing the inter-node scaling at 20, 40, 60, and 80 processes. The other points from 1-20 processes are not appropriate for Amdahl's law fitting because within a socket all cores are competing for shared memory bandwidth, leading to saturation effects that create a bottleneck. This violates the model's assumption of scalable resources (Lecture 1, Slide 40). In order to fit Amdahl's law, we use inter-node scaling where intra-socket communication overhead is not the limiting factor. We define the first node (20 processes) as the scaling baseline, following the methodology shown in Lecture 1, Slide 40
 
 ![Appropriate data points shown in red circle](images/ambdahl.png){ width=80% }
 
 ### Serial fraction
-Using Amdahl's law we can compute the serial fraction by using the speedup value at $p=20$ processes, which is $S = 12$ according to the provided plot. The serial fraction is derived as follows:
+Using the first node as our scaling baseline, we divide all speedup values by the speedup at 20 processes, resulting in the following rebased values. (Note: We now express parallelism in terms of nodes $N$, where 1 node equals 20 processes)
 
 \begin{align}
-S(p) &= \frac{1}{s + \frac{1-s}{p}} \\
-12 &= \frac{1}{s + \frac{1-s}{20}} \\
-s + \frac{1-s}{20} &= \frac{1}{12}\\
-19s + 1 &= \frac{5}{3} \\
-19s &= \frac{5}{3} - 1 = \frac{5 - 3}{3} = \frac{2}{3} \\
-s &= \frac{2}{3 \cdot 19} = \frac{2}{57} \approx 0.035 \text{ or } 3.5\%
+S(1) &= \frac{12}{12} = 1\\
+S(2) &= \frac{24}{12} = 2\\
+S(3) &= \frac{34}{12} = \frac{17}{6}\\
+S(4) &= \frac{46}{12} = \frac{23}{6}\\
 \end{align}
 
-Therefore 3.5% of the code is serial.
+We can now compute the serial fraction for $N = 4$ Nodes:
+
+\begin{align}
+S(N) &= \frac{1}{s + \frac{1-s}{N}} \\
+\frac{23}{6} &= \frac{1}{s + \frac{1-s}{4}} \\
+s + \frac{1-s}{4} &= \frac{6}{23}\\
+4s + (1-s) &= \frac{24}{23}\\
+3s + 1 &=  \frac{24}{23} \\
+3s &= \frac{24 - 23}{23} \\
+s &= \frac{1}{23 \cdot 3} \approx 0.01449
+\end{align}
+
+Therefore approximately 1.45% of the code is serial.
 
