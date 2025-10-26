@@ -24,7 +24,7 @@ header-includes: |
 Solution provided in code and can be found in the zip file.
 
 ## Part 2
-The appropriate points are circled in red, representing the inter-node scaling at 20, 40, 60, and 80 processes. The other points from 1-20 processes are not appropriate for Amdahl's law fitting because within a socket all cores are competing for shared memory bandwidth, leading to saturation effects that create a bottleneck. This violates the model's assumption of scalable resources (Lecture 1, Slide 40). In order to fit Amdahl's law, we use inter-node scaling where intra-socket communication overhead is not the limiting factor. We define the first node (20 processes) as the scaling baseline, following the methodology shown in Lecture 1, Slide 40
+The appropriate points are circled in red, representing the inter-node scaling at 20, 40, 60, and 80 processes. The other points from 1-20 processes are not appropriate for Amdahl's law fitting because within a socket all cores are competing for shared memory bandwidth, leading to saturation effects that create a bottleneck. This violates the model's assumption of scalable resources (Lecture 1, Slide 40). In order to fit Amdahl's law, we use inter-node scaling where intra-socket communication overhead is not the limiting factor. We define the first node (20 processes) as the scaling baseline.
 
 ![Appropriate data points shown in red circle](images/ambdahl.png){ width=80% }
 
