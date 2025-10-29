@@ -14,7 +14,7 @@
 
 #include "timing.h"
 
-#define N 10000
+#define N 1000000
 
 double integrate(double, double);
 double f(double x);
@@ -23,6 +23,7 @@ int main(int argc, char **argv) {
   double wcs, wce;
   double Pi, local_Pi;
   int rank, size, root_rank = 0;
+
   MPI_Init(&argc, &argv);
   MPI_Comm_rank(MPI_COMM_WORLD, &rank);
   MPI_Comm_size(MPI_COMM_WORLD, &size);
