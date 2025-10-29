@@ -31,9 +31,19 @@ int main(int argc, char **argv) {
 
   wcs = getTimeStamp();
   local_Pi = integrate(rank * interval, (rank + 1) * interval);
-  MPI_Reduce(&local_Pi, &Pi, 1, MPI_DOUBLE, MPI_SUM, root_rank, MPI_COMM_WORLD);
-  wce = getTimeStamp();
+  if (rank == root_rank) {
+    Pi = local_Pi;
 
+    for (int i = 1; i < size; i++) {
+      double worker_result;
+      MPI_Recv(&worker_result, 1, MPI_DOUBLE, i, 0, MPI_COMM_WORLD,
+               MPI_STATUS_IGNORE);
+      Pi += worker_result;
+    }
+  } else {
+    MPI_Send(&local_Pi, 1, MPI_DOUBLE, root_rank, 0, MPI_COMM_WORLD);
+  }
+  wce = getTimeStamp();
   if (rank == root_rank)
     printf("Pi=%.15lf in %.3lf s \n", Pi, wce - wcs);
 
