@@ -16,7 +16,7 @@
 
 #define N 1000000000
 
-double integrate(double, double, int);
+double integrate(double, double);
 double f(double x);
 
 int main(int argc, char **argv) {
@@ -28,10 +28,9 @@ int main(int argc, char **argv) {
   MPI_Comm_rank(MPI_COMM_WORLD, &rank);
   MPI_Comm_size(MPI_COMM_WORLD, &size);
   double interval = 1.0 / size;
-  int slice_per_inter = N / size;
 
   wcs = getTimeStamp();
-  local_Pi = integrate(rank * interval, (rank + 1) * interval, slice_per_inter);
+  local_Pi = integrate(rank * interval, (rank + 1) * interval);
   if (rank == root_rank) {
     Pi = local_Pi;
 
@@ -55,7 +54,7 @@ int main(int argc, char **argv) {
 
 double f(double x) { return sqrt(1 - x * x); }
 
-double integrate(double a, double b, int slices) {
+double integrate(double a, double b) {
 
   /*
 
@@ -65,10 +64,12 @@ double integrate(double a, double b, int slices) {
           Return sum * delta x to get the value of PI.
 
   */
-
+  int size;
+  MPI_Comm_size(MPI_COMM_WORLD, &size);
+  int slices = N / size;
   double delta_x = (b - a) / slices;
   double sum = 0.0;
-  double x = 0.0;
+  double x;
 
   for (int i = 0; i < slices; ++i) {
     // x = a + (i + 0.5) * delta_x;
