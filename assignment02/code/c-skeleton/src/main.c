@@ -19,7 +19,7 @@ int main(int argc, char** argv)
 {
     MPI_Init(&argc, &argv);
     int my_rank, size;
-		MPI_Comm_size(MPI_COMM_WORLD, &size);
+    MPI_Comm_size(MPI_COMM_WORLD, &size);
     MPI_Comm_rank(MPI_COMM_WORLD, &my_rank);
     printf("Hello World from rank %d of size %d\n", my_rank, size);
 

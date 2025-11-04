@@ -28,7 +28,7 @@ int main(int argc, char **argv) {
   MPI_Comm_rank(MPI_COMM_WORLD, &rank);
   MPI_Comm_size(MPI_COMM_WORLD, &size);
   double interval = 1.0 / size;
-  double slice_per_inter = N/size;
+  int slice_per_inter = N / size;
 
   wcs = getTimeStamp();
   local_Pi = integrate(rank * interval, (rank + 1) * interval, slice_per_inter);
@@ -68,10 +68,10 @@ double integrate(double a, double b, int slices) {
 
   double delta_x = (b - a) / slices;
   double sum = 0.0;
-  double x=0.0;
+  double x = 0.0;
 
   for (int i = 0; i < slices; ++i) {
-//x = a + (i + 0.5) * delta_x;
+    // x = a + (i + 0.5) * delta_x;
     x = a + i * delta_x;
     sum += f(x);
   }
