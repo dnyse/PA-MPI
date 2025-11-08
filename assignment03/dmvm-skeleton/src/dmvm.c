@@ -12,8 +12,11 @@
 #define MIN(x, y) (((x) < (y)) ? (x) : (y))
 
 // Define which implementation to use
+// #define SERIAL
 #define PARALLEL
-//#define CHECK
+// #define CHECK
+// #define BLOCKING
+#define NON_BLOCKING
 
 double dmvm(double *restrict y, const double *restrict a,
             const double *restrict x, int N, int iter) {
@@ -29,13 +32,18 @@ double dmvm(double *restrict y, const double *restrict a,
 
   int x_start = rank * num + MIN(rest, rank);
 
-  double *x_local = (double *)malloc(Nlocal * sizeof(double));
-
+  double *x_buffers[2]; // Two buffers for rotation
+  x_buffers[0] = (double *)malloc(Nlocal * sizeof(double));
+#ifdef NON_BLOCKING
+  x_buffers[1] = (double *)malloc(Nlocal * sizeof(double));
+  MPI_Request request;
+#endif
   ts = getTimeStamp();
-  for (int j = 0; j < iter; j++) { // Loop for 'iter'
-
+  int b_idx = 0;
+  for (int j = 0; j < iter; j++) {
+    b_idx = 0;
     for (int i = 0; i < Nlocal; i++) {
-      x_local[i] = x[x_start + i];
+      x_buffers[b_idx][i] = x[x_start + i];
     }
 
     upperNeighbor = (rank - 1) % size;
@@ -47,20 +55,33 @@ double dmvm(double *restrict y, const double *restrict a,
     Ncurrent = Nlocal;
 
     for (int rot = 0; rot < size; rot++) {
+#ifdef NON_BLOCKING
+      if (rot != size - 1)
+        MPI_Isendrecv(x_buffers[b_idx], Nlocal, MPI_DOUBLE, upperNeighbor, 0,
+                      x_buffers[(b_idx + 1) % 2], Nlocal, MPI_DOUBLE,
+                      lowerNeighbor, 0, MPI_COMM_WORLD, &request);
+#endif
       for (int r = 0; r < Nlocal; r++) {
         int r_local = x_start + r;
         for (int c = cs; c < cs + Ncurrent; c++) {
-          y[r_local] += a[r_local * N + c] * x_local[c - cs];
+          y[r_local] += a[r_local * N + c] * x_buffers[b_idx][c - cs];
         }
       }
       cs += Ncurrent;
       if (cs >= N)
         cs = 0;
       Ncurrent = (N / size) + ((N % size > (rank + rot + 1) % size) ? 1 : 0);
+#ifdef NON_BLOCKING
       if (rot != size - 1)
-        MPI_Sendrecv_replace(x_local, Nlocal, MPI_DOUBLE, upperNeighbor, 0,
-                             lowerNeighbor, 0, MPI_COMM_WORLD,
+        MPI_Wait(&request, MPI_STATUS_IGNORE);
+      b_idx = (b_idx % 2) + 1;
+#endif
+#ifdef BLOCKING
+      if (rot != size - 1)
+        MPI_Sendrecv_replace(x_buffers[idx], Nlocal, MPI_DOUBLE, upperNeighbor,
+                             0, lowerNeighbor, 0, MPI_COMM_WORLD,
                              MPI_STATUS_IGNORE);
+#endif /* ifdef BLOCKING */
     }
   }
   te = getTimeStamp();
