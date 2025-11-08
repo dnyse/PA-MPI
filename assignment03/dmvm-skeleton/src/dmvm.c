@@ -14,7 +14,7 @@
 // Define which implementation to use
 // #define SERIAL
 #define PARALLEL
-// #define CHECK
+#define CHECK
 // #define BLOCKING
 #define NON_BLOCKING
 
@@ -36,7 +36,7 @@ double dmvm(double *restrict y, const double *restrict a,
   x_buffers[0] = (double *)malloc(Nlocal * sizeof(double));
 #ifdef NON_BLOCKING
   x_buffers[1] = (double *)malloc(Nlocal * sizeof(double));
-  MPI_Request request;
+  MPI_Request requests[2];
 #endif
   ts = getTimeStamp();
   int b_idx = 0;
@@ -56,10 +56,13 @@ double dmvm(double *restrict y, const double *restrict a,
 
     for (int rot = 0; rot < size; rot++) {
 #ifdef NON_BLOCKING
-      if (rot != size - 1)
-        MPI_Isendrecv(x_buffers[b_idx], Nlocal, MPI_DOUBLE, upperNeighbor, 0,
-                      x_buffers[(b_idx + 1) % 2], Nlocal, MPI_DOUBLE,
-                      lowerNeighbor, 0, MPI_COMM_WORLD, &request);
+      if (rot != size - 1) {
+        MPI_Isend(x_buffers[b_idx], Nlocal, MPI_DOUBLE, upperNeighbor, 0,
+                  MPI_COMM_WORLD, &requests[0]);
+
+        MPI_Irecv(x_buffers[(b_idx + 1) % 2], Nlocal, MPI_DOUBLE, lowerNeighbor,
+                  0, MPI_COMM_WORLD, &requests[1]);
+      }
 #endif
       for (int r = 0; r < Nlocal; r++) {
         int r_local = x_start + r;
@@ -73,8 +76,8 @@ double dmvm(double *restrict y, const double *restrict a,
       Ncurrent = (N / size) + ((N % size > (rank + rot + 1) % size) ? 1 : 0);
 #ifdef NON_BLOCKING
       if (rot != size - 1)
-        MPI_Wait(&request, MPI_STATUS_IGNORE);
-      b_idx = (b_idx % 2) + 1;
+        MPI_Waitall(2, requests, MPI_STATUS_IGNORE);
+      b_idx = (b_idx + 1) % 1;
 #endif
 #ifdef BLOCKING
       if (rot != size - 1)
@@ -86,7 +89,10 @@ double dmvm(double *restrict y, const double *restrict a,
   }
   te = getTimeStamp();
 
-  free(x_local);
+  free(x_buffers[0]);
+#ifdef NON_BLOCKING
+  free(x_buffers[1]);
+#endif
 
 #ifdef CHECK
   double local_sum = 0.0;
