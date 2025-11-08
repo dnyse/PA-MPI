@@ -13,7 +13,7 @@
 
 // Define which implementation to use
 #define PARALLEL
-#define CHECK
+//#define CHECK
 
 double dmvm(double *restrict y, const double *restrict a,
             const double *restrict x, int N, int iter) {

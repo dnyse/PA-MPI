@@ -1,8 +1,8 @@
 #!/bin/bash -l
-#SBATCH --job-name=bench_internode
-#SBATCH --output=Fritz_ICX_DMVM_internode
-#SBATCH --partition=multinode
-#SBATCH --nodes=4
+#SBATCH --job-name=bench_memdomain
+#SBATCH --output=Fritz_ICX_DMVM_memdomain
+#SBATCH --partition=singlenode
+#SBATCH --nodes=1
 #SBATCH --ntasks-per-node=72
 #SBATCH --time=10:00:00
 #SBATCH --export=NONE
@@ -13,11 +13,10 @@ unset SLURM_EXPORT_ENV
 module load likwid intel intelmpi
 export I_MPI_PIN=1
 export I_MPI_DEBUG=0
-export I_MPI_PIN_PROCESSOR_LIST=0-71
 
-FILENAME="result_bench_internode.csv"
+FILENAME="result_bench_memdomain.csv"
 
-cd ~/PAMPI/pampi-tutorial/ex4/dmvm/mpi
+cd ~/PA-MPI/assignment03/dmvm-skeleton
 make distclean
 make
 
@@ -26,17 +25,18 @@ touch $FILENAME
 echo "Ranks,NITER,N,MFlops,Time" >>$FILENAME
 
 _iterate() {
-    for np in $(seq 1 4); do
-        npn=$(($np * $NPM))
+    for np in $(seq 1 18); do
+        np_1=$(($np - 1))
+        export I_MPI_PIN_PROCESSOR_LIST=0-$np_1
 
-        result="$(mpirun -n $npn ./exe-ICX $N $NITER)"
+        result="$(mpirun -n $np ./exe-ICX $N $NITER)"
         result="$(echo $result | sed 's/MPI startup(): Warning: I_MPI_PMI_LIBRARY will be ignored since the hydra process manager was found//g')"
 
-        echo $npn $result >>$FILENAME
+        echo $np $result >>$FILENAME
     done
 }
 
-NPM=72
+NPM=18
 
 # For domain of 1000x1000
 NITER=1000000

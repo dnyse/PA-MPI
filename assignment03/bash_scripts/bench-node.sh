@@ -16,7 +16,7 @@ export I_MPI_DEBUG=0
 
 FILENAME="result_bench_intranode.csv"
 
-cd ~/PAMPI/pampi-tutorial/ex4/dmvm/mpi
+cd ~/PA-MPI/assignment03/dmvm-skeleton
 make distclean
 make
 
