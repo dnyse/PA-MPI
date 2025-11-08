@@ -11,6 +11,7 @@
 
 #define MIN(x, y) (((x) < (y)) ? (x) : (y))
 
+// Define which implementation to use
 #define PARALLEL
 #define CHECK
 
@@ -30,36 +31,60 @@ double dmvm(double *restrict y, const double *restrict a,
 
   double *x_local = (double *)malloc(Nlocal * sizeof(double));
 
-  for (int i = 0; i < Nlocal; i++) {
-    x_local[i] = x[x_start + i];
-  }
-
-  upperNeighbor = (rank - 1) % size;
-  lowerNeighbor = (rank + 1) % size;
-  if (upperNeighbor < 0)
-    upperNeighbor = size - 1;
-
-  cs = x_start;
-  Ncurrent = Nlocal;
-
   ts = getTimeStamp();
-  for (int rot = 0; rot < size; rot++) {
-    for (int r = 0; r < Nlocal; r++) {
-      int r_local = x_start + r;
-      for (int c = cs; c < cs + Ncurrent; c++) {
-        y[r_local] += a[r_local * N + c] * x_local[c - cs];
-      }
+  for (int j = 0; j < iter; j++) { // Loop for 'iter'
+
+    for (int i = 0; i < Nlocal; i++) {
+      x_local[i] = x[x_start + i];
     }
-    cs += Ncurrent;
-    if (cs >= N)
-      cs = 0; // wrap around
-    Ncurrent = (N / size) + ((N % size > (rank + rot + 1) % size) ? 1 : 0);
-    if (rot != size - 1)
-      MPI_Sendrecv_replace(x_local, Nlocal, MPI_DOUBLE, upperNeighbor, 0,
-                           lowerNeighbor, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+
+    upperNeighbor = (rank - 1) % size;
+    lowerNeighbor = (rank + 1) % size;
+    if (upperNeighbor < 0)
+      upperNeighbor = size - 1;
+
+    cs = x_start;
+    Ncurrent = Nlocal;
+
+    for (int rot = 0; rot < size; rot++) {
+      for (int r = 0; r < Nlocal; r++) {
+        int r_local = x_start + r;
+        for (int c = cs; c < cs + Ncurrent; c++) {
+          y[r_local] += a[r_local * N + c] * x_local[c - cs];
+        }
+      }
+      cs += Ncurrent;
+      if (cs >= N)
+        cs = 0;
+      Ncurrent = (N / size) + ((N % size > (rank + rot + 1) % size) ? 1 : 0);
+      if (rot != size - 1)
+        MPI_Sendrecv_replace(x_local, Nlocal, MPI_DOUBLE, upperNeighbor, 0,
+                             lowerNeighbor, 0, MPI_COMM_WORLD,
+                             MPI_STATUS_IGNORE);
+    }
   }
   te = getTimeStamp();
-#endif
+
+  free(x_local);
+
+#ifdef CHECK
+  double local_sum = 0.0;
+  double global_sum = 0.0;
+
+  for (int r = 0; r < Nlocal; r++) {
+    int r_local = x_start + r;
+    local_sum += y[r_local];
+  }
+
+  MPI_Reduce(&local_sum, &global_sum, 1, MPI_DOUBLE, MPI_SUM, 0,
+             MPI_COMM_WORLD);
+
+  if (rank == 0) {
+    fprintf(stderr, "Sum: %f\n", global_sum);
+  }
+#endif // CHECK
+#endif // PARALLEL
+
 #ifdef SERIAL
   ts = getTimeStamp();
   for (int j = 0; j < iter; j++) {
@@ -70,17 +95,15 @@ double dmvm(double *restrict y, const double *restrict a,
     }
   }
   te = getTimeStamp();
-#endif
-#ifdef CHECK
-  if (rank == 0) {
-    double sum = 0.0;
 
-    for (int i = 0; i < N; i++) {
-      sum += y[i];
-      y[i] = 0.0;
-    }
-    fprintf(stderr, "Sum: %f\n", sum);
+#ifdef CHECK
+  double sum = 0.0;
+  for (int i = 0; i < N; i++) {
+    sum += y[i];
   }
-#endif
+  fprintf(stderr, "Sum: %f\n", sum);
+#endif // CHECK
+#endif // SERIAL
+
   return te - ts;
 }
