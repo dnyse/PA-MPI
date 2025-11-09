@@ -14,9 +14,9 @@
 // Define which implementation to use
 // #define SERIAL
 #define PARALLEL
-#define CHECK
-// #define BLOCKING
-#define NON_BLOCKING
+// #define CHECK
+#define BLOCKING
+// #define NON_BLOCKING
 
 double dmvm(double *restrict y, const double *restrict a,
             const double *restrict x, int N, int iter) {
@@ -29,13 +29,14 @@ double dmvm(double *restrict y, const double *restrict a,
   num = N / size;
   rest = N % size;
   Nlocal = (N / size) + ((N % size > rank) ? 1 : 0);
+	int Nmax = (N / size) + ((N % size > 0) ? 1 : 0);
 
   int x_start = rank * num + MIN(rest, rank);
 
   double *x_buffers[2]; // Two buffers for rotation
-  x_buffers[0] = (double *)malloc(Nlocal * sizeof(double));
+  x_buffers[0] = (double *)malloc(Nmax * sizeof(double));
 #ifdef NON_BLOCKING
-  x_buffers[1] = (double *)malloc(Nlocal * sizeof(double));
+  x_buffers[1] = (double *)malloc(Nmax * sizeof(double));
   MPI_Request requests[2];
 #endif
   ts = getTimeStamp();
@@ -57,10 +58,10 @@ double dmvm(double *restrict y, const double *restrict a,
     for (int rot = 0; rot < size; rot++) {
 #ifdef NON_BLOCKING
       if (rot != size - 1) {
-        MPI_Isend(x_buffers[b_idx], Nlocal, MPI_DOUBLE, upperNeighbor, 0,
+        MPI_Isend(x_buffers[b_idx], Nmax, MPI_DOUBLE, upperNeighbor, 0,
                   MPI_COMM_WORLD, &requests[0]);
 
-        MPI_Irecv(x_buffers[(b_idx + 1) % 2], Nlocal, MPI_DOUBLE, lowerNeighbor,
+        MPI_Irecv(x_buffers[(b_idx + 1) % 2], Nmax, MPI_DOUBLE, lowerNeighbor,
                   0, MPI_COMM_WORLD, &requests[1]);
       }
 #endif
@@ -77,11 +78,11 @@ double dmvm(double *restrict y, const double *restrict a,
 #ifdef NON_BLOCKING
       if (rot != size - 1)
         MPI_Waitall(2, requests, MPI_STATUS_IGNORE);
-      b_idx = (b_idx + 1) % 1;
+      b_idx = (b_idx + 1) % 2;
 #endif
 #ifdef BLOCKING
       if (rot != size - 1)
-        MPI_Sendrecv_replace(x_buffers[idx], Nlocal, MPI_DOUBLE, upperNeighbor,
+        MPI_Sendrecv_replace(x_buffers[b_idx], Nmax, MPI_DOUBLE, upperNeighbor,
                              0, lowerNeighbor, 0, MPI_COMM_WORLD,
                              MPI_STATUS_IGNORE);
 #endif /* ifdef BLOCKING */
