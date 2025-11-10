@@ -39,7 +39,7 @@ double dmvm(double *restrict y, const double *restrict a,
     b_idx = 0;
     for (int i = 0; i < Nlocal; i++) {
       x_buffers[b_idx][i] = x[x_start + i];
-			y[i] = 0.0;
+      y[i] = 0.0;
     }
 
     cs = x_start;

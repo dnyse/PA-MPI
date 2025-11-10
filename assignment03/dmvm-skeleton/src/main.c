@@ -16,7 +16,7 @@
 
 #define MIN(x, y) (((x) < (y)) ? (x) : (y))
 
-// NOTE: This file assumes either BLOCKING or NON_BLOCKING is defined 
+// NOTE: This file assumes either BLOCKING or NON_BLOCKING is defined
 // in your Makefile or build command.
 
 extern double dmvm(double *restrict y, const double *restrict a,
@@ -49,35 +49,23 @@ int main(int argc, char **argv) {
   int Nlocal = (N / size) + ((N % size > rank) ? 1 : 0);
   int x_start = rank * num + MIN(rest, rank);
 
-  // A: Nlocal rows (local) x N columns (global)
-  a = (double *)allocate(ARRAY_ALIGNMENT, (size_t)N * Nlocal * bytesPerWord);
-  // X: Full global vector (needed by everyone for initialization)
-  x = (double *)allocate(ARRAY_ALIGNMENT, (size_t)N * bytesPerWord);
-  // Y: Nlocal rows (local)
-  y = (double *)allocate(ARRAY_ALIGNMENT, (size_t)Nlocal * bytesPerWord);
+  a = (double *)allocate(ARRAY_ALIGNMENT, N * Nlocal * bytesPerWord);
+  x = (double *)allocate(ARRAY_ALIGNMENT, (Nlocal + 1) * bytesPerWord);
+  y = (double *)allocate(ARRAY_ALIGNMENT, (Nlocal + 1) * bytesPerWord);
 
-  for (int i = 0; i < N; i++) {
-    x[i] = (double)i;
-  }
   for (int i = 0; i < Nlocal; i++) {
-    y[i] = 0.0; 
+    x[i] = (double)(x_start + i);
+    y[i] = 0.0;
     for (int j = 0; j < N; j++) {
-      a[i * N + j] = (double)j + (x_start + i);
+      a[i * N + j] = (double)(j + x_start + i);
     }
   }
 
   walltime = dmvm(y, a, x, N, iter, Nlocal, x_start, size, rank);
-  double local_flops = (double)2.0 * N * Nlocal * iter;
-  double global_flops, max_walltime;
-
-  MPI_Reduce(&local_flops, &global_flops, 1, MPI_DOUBLE, MPI_SUM, 0,
-             MPI_COMM_WORLD);
-  MPI_Reduce(&walltime, &max_walltime, 1, MPI_DOUBLE, MPI_MAX, 0,
-             MPI_COMM_WORLD);
-
   if (rank == 0) {
-    printf("%zu %zu %.2f %.2f\n", iter, N,
-           1.0E-06 * global_flops / max_walltime, max_walltime);
+    double flops = (double)2.0 * N * N * iter;
+    printf("%zu %zu %.2f %.2f\n", iter, N, 1.0E-06 * flops / walltime,
+           walltime);
   }
 
   MPI_Finalize();
