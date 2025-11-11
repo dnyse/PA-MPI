@@ -10,17 +10,14 @@
 #include <stdlib.h>
 
 // Define which implementation to use
-// #define SERIAL
-#define PARALLEL
-//#define CHECK
-//#define BLOCKING
+// #define CHECK
+// #define BLOCKING
 #define NON_BLOCKING
 
 double dmvm(double *restrict y, const double *restrict a,
             const double *restrict x, int N, int iter, int Nlocal, int x_start,
             int size, int rank) {
   double ts, te;
-#ifdef PARALLEL
   int upperNeighbor, lowerNeighbor, cs, Ncurrent;
   int Nmax = (N / size) + ((N % size > 0) ? 1 : 0);
 
@@ -69,11 +66,13 @@ double dmvm(double *restrict y, const double *restrict a,
         MPI_Waitall(2, requests, MPI_STATUS_IGNORE);
 #endif
 #ifdef BLOCKING
-      if (rot != size - 1){
-              MPI_Sendrecv(x_buffers[b_idx], Nmax, MPI_DOUBLE, upperNeighbor, 0, x_buffers[(b_idx + 1) % 2], Nmax, MPI_DOUBLE, lowerNeighbor, 0,MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+      if (rot != size - 1) {
+        MPI_Sendrecv(x_buffers[b_idx], Nmax, MPI_DOUBLE, upperNeighbor, 0,
+                     x_buffers[(b_idx + 1) % 2], Nmax, MPI_DOUBLE,
+                     lowerNeighbor, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
       }
 #endif /* ifdef BLOCKING */
-       b_idx = (b_idx + 1) % 2;
+      b_idx = (b_idx + 1) % 2;
     }
   }
   te = getTimeStamp();
@@ -95,27 +94,26 @@ double dmvm(double *restrict y, const double *restrict a,
     fprintf(stderr, "Sum: %f\n", global_sum);
   }
 #endif // CHECK
-#endif // PARALLEL
 
-#ifdef SERIAL
-  ts = getTimeStamp();
-  for (int j = 0; j < iter; j++) {
-    for (int r = 0; r < N; r++) {
-      for (int c = 0; c < N; c++) {
-        y[r] = y[r] + a[r * N + c] * x[c];
-      }
-    }
-  }
-  te = getTimeStamp();
-
-#ifdef CHECK
-  double sum = 0.0;
-  for (int i = 0; i < N; i++) {
-    sum += y[i];
-  }
-  fprintf(stderr, "Sum: %f\n", sum);
-#endif // CHECK
-#endif // SERIAL
-
+  // #ifdef SERIAL
+  //   ts = getTimeStamp();
+  //   for (int j = 0; j < iter; j++) {
+  //     for (int r = 0; r < N; r++) {
+  //       for (int c = 0; c < N; c++) {
+  //         y[r] = y[r] + a[r * N + c] * x[c];
+  //       }
+  //     }
+  //   }
+  //   te = getTimeStamp();
+  //
+  // #ifdef CHECK
+  //   double sum = 0.0;
+  //   for (int i = 0; i < N; i++) {
+  //     sum += y[i];
+  //   }
+  //   fprintf(stderr, "Sum: %f\n", sum);
+  // #endif // CHECK
+  // #endif // SERIAL
+  //
   return te - ts;
 }
