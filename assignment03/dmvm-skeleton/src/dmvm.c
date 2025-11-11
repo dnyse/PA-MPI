@@ -13,8 +13,8 @@
 // #define SERIAL
 #define PARALLEL
 //#define CHECK
-#define BLOCKING
-//#define NON_BLOCKING
+//#define BLOCKING
+#define NON_BLOCKING
 
 double dmvm(double *restrict y, const double *restrict a,
             const double *restrict x, int N, int iter, int Nlocal, int x_start,
@@ -75,11 +75,6 @@ double dmvm(double *restrict y, const double *restrict a,
 #endif /* ifdef BLOCKING */
        b_idx = (b_idx + 1) % 2;
     }
-#ifdef NON_BLOCKING
-      if ((j + 1) % 1000 == 0) {
-	MPI_Barrier(MPI_COMM_WORLD);
-      }
-#endif
   }
   te = getTimeStamp();
 
