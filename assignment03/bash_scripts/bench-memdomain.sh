@@ -14,7 +14,7 @@ module load likwid intel intelmpi
 export I_MPI_PIN=1
 export I_MPI_DEBUG=0
 
-FILENAME="result_bench_memdomain_non-blocking.csv"
+FILENAME="result_bench_memdomain_blocking.csv"
 
 cd ~/PA-MPI/assignment03/dmvm-skeleton
 make distclean
@@ -39,19 +39,19 @@ _iterate() {
 NPM=18
 
 # For domain of 1000x1000
-NITER=1000000
-N=1000
-_iterate
+# NITER=1000000
+# N=1000
+# _iterate
 
 # For domain of 4000x4000
-NITER=100000
-N=4000
-_iterate
+#NITER=100000
+#N=4000
+#_iterate
 
 # For domain of 4000x4000
-NITER=10000
-N=10000
-_iterate
+#NITER=10000
+#N=10000
+#_iterate
 
 # For domain of 4000x4000
 NITER=5000

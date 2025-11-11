@@ -1,5 +1,5 @@
-### Starting TaskPrologue of job 3052963 on f1140 at Tue Nov 11 00:18:20 CET 2025
-#   SLURM_JOB_NODELIST=f1140
+### Starting TaskPrologue of job 3053797 on f0536 at Tue Nov 11 09:15:47 CET 2025
+#   SLURM_JOB_NODELIST=f0536
 #   SLURM_JOB_NUM_NODES=1
 #   SLURM_NTASKS=72
 #   SLURM_NPROCS=72
@@ -83,38 +83,27 @@ icx: warning: -lpthread: 'linker' input unused [-Wunused-command-line-argument]
 icx: warning: argument unused during compilation: '-L/apps/SPACK/0.19.1/opt/linux-almalinux8-icelake/gcc-8.5.0/intel-oneapi-mpi-2021.10.0-ki6gcj4pr5rekayazvm4lsmvcyosce25/mpi/2021.10.0/lib/release' [-Wunused-command-line-argument]
 icx: warning: argument unused during compilation: '-L/apps/SPACK/0.19.1/opt/linux-almalinux8-icelake/gcc-8.5.0/intel-oneapi-mpi-2021.10.0-ki6gcj4pr5rekayazvm4lsmvcyosce25/mpi/2021.10.0/lib' [-Wunused-command-line-argument]
 ===>  LINKING  exe-ICX
-slurmstepd: error: Detected 1 oom_kill event in StepId=3052963.1. Some of the step tasks have been OOM Killed.
-srun: error: f1140: task 0: Out Of Memory
-srun: Terminating StepId=3052963.1
-slurmstepd: error: Detected 1 oom_kill event in StepId=3052963.2. Some of the step tasks have been OOM Killed.
-srun: error: f1140: task 0: Out Of Memory
-srun: Terminating StepId=3052963.2
-slurmstepd: error: Detected 1 oom_kill event in StepId=3052963.3. Some of the step tasks have been OOM Killed.
-srun: error: f1140: task 0: Out Of Memory
-srun: Terminating StepId=3052963.3
-slurmstepd: error: *** STEP 3052963.4 ON f1140 CANCELLED AT 2025-11-11T00:30:01 ***
-slurmstepd: error: *** JOB 3052963 ON f1140 CANCELLED AT 2025-11-11T00:30:01 ***
 === JOB_STATISTICS ===
-=== current date     : Tue Nov 11 00:30:05 CET 2025
-= Job-ID             : 3052963 on fritz
+=== current date     : Tue Nov 11 09:32:40 CET 2025
+= Job-ID             : 3053797 on fritz
 = Job-Name           : bench_intranode
 = Job-Command        : /home/hpc/pavl/pavl164v/PA-MPI/assignment03/bash_scripts/bench-node.sh
 = Initial workdir    : /home/hpc/pavl/pavl164v/PA-MPI/assignment03/bash_scripts
 = Queue/Partition    : singlenode
 = Slurm account      : pavl with QOS=normal
 = Requested resources:  for 10:00:00
-= Elapsed runtime    : 00:11:44
-= Total RAM usage    : 231.9 GiB 
-= Node list          : f1140
-= Subm/Elig/Start/End: 2025-11-11T00:14:04 / 2025-11-11T00:14:04 / 2025-11-11T00:18:17 / 2025-11-11T00:30:01
+= Elapsed runtime    : 00:16:55
+= Total RAM usage    : 11.2 GiB 
+= Node list          : f0536
+= Subm/Elig/Start/End: 2025-11-11T09:15:44 / 2025-11-11T09:15:44 / 2025-11-11T09:15:44 / 2025-11-11T09:32:39
 ======================
 === Quota infos ======
     Path                 Used     SoftQ    HardQ    Gracetime  Filec    FileQ    FiHaQ    FileGrace    
     /home/woody             0.0K  1000.0G  1500.0G        N/A       1    5,000K   7,500K        N/A    
-    /home/hpc             110.1M   104.9G   209.7G        N/A     806      500K   1,000K        N/A    
+    /home/hpc              76.0M   104.9G   209.7G        N/A     301      500K   1,000K        N/A    
     /lustre                 4.0K     0.0K     0.0K        N/A       1       80K     250K        N/A    
 ======================
 === Network traffic stats (does not include Infiniband) ======
-= HPC internal traffic (e.g. to fileservers): 106 GB in / 1 GB out
+= HPC internal traffic (e.g. to fileservers): 0 GB in / 0 GB out
 = External traffic: 0 GB in / 0 GB out
 ======================

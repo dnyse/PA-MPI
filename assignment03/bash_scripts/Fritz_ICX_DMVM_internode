@@ -1,5 +1,5 @@
-### Starting TaskPrologue of job 3052954 on f0208 at Tue Nov 11 00:05:42 CET 2025
-#   SLURM_JOB_NODELIST=f[0208-0209,0227-0228]
+### Starting TaskPrologue of job 3053799 on f0951 at Tue Nov 11 09:15:54 CET 2025
+#   SLURM_JOB_NODELIST=f[0951-0954]
 #   SLURM_JOB_NUM_NODES=4
 #   SLURM_NTASKS=288
 #   SLURM_NPROCS=288
@@ -83,33 +83,27 @@ icx: warning: -lpthread: 'linker' input unused [-Wunused-command-line-argument]
 icx: warning: argument unused during compilation: '-L/apps/SPACK/0.19.1/opt/linux-almalinux8-icelake/gcc-8.5.0/intel-oneapi-mpi-2021.10.0-ki6gcj4pr5rekayazvm4lsmvcyosce25/mpi/2021.10.0/lib/release' [-Wunused-command-line-argument]
 icx: warning: argument unused during compilation: '-L/apps/SPACK/0.19.1/opt/linux-almalinux8-icelake/gcc-8.5.0/intel-oneapi-mpi-2021.10.0-ki6gcj4pr5rekayazvm4lsmvcyosce25/mpi/2021.10.0/lib' [-Wunused-command-line-argument]
 ===>  LINKING  exe-ICX
-rm: cannot remove 'result_bench_internode_blocking.csv': No such file or directory
-slurmstepd: error: Detected 1 oom_kill event in StepId=3052954.0. Some of the step tasks have been OOM Killed.
-srun: error: f0208: task 0: Out Of Memory
-srun: Terminating StepId=3052954.0
-slurmstepd: error: *** JOB 3052954 ON f0208 CANCELLED AT 2025-11-11T00:23:36 ***
-slurmstepd: error: *** STEP 3052954.1 ON f0208 CANCELLED AT 2025-11-11T00:23:36 ***
 === JOB_STATISTICS ===
-=== current date     : Tue Nov 11 00:23:43 CET 2025
-= Job-ID             : 3052954 on fritz
+=== current date     : Tue Nov 11 09:28:08 CET 2025
+= Job-ID             : 3053799 on fritz
 = Job-Name           : bench_internode
 = Job-Command        : /home/hpc/pavl/pavl164v/PA-MPI/assignment03/bash_scripts/bench-cluster.sh
 = Initial workdir    : /home/hpc/pavl/pavl164v/PA-MPI/assignment03/bash_scripts
 = Queue/Partition    : multinode
 = Slurm account      : pavl with QOS=normal
 = Requested resources:  for 10:00:00
-= Elapsed runtime    : 00:17:56
-= Total RAM usage    : 231.9 GiB 
-= Node list          : f[0208-0209]
-= Subm/Elig/Start/End: 2025-11-11T00:05:39 / 2025-11-11T00:05:39 / 2025-11-11T00:05:40 / 2025-11-11T00:23:36
+= Elapsed runtime    : 00:12:16
+= Total RAM usage    : 11.2 GiB 
+= Node list          : f[0951-0954]
+= Subm/Elig/Start/End: 2025-11-11T09:15:51 / 2025-11-11T09:15:51 / 2025-11-11T09:15:51 / 2025-11-11T09:28:07
 ======================
 === Quota infos ======
     Path                 Used     SoftQ    HardQ    Gracetime  Filec    FileQ    FiHaQ    FileGrace    
     /home/woody             0.0K  1000.0G  1500.0G        N/A       1    5,000K   7,500K        N/A    
-    /home/hpc             110.1M   104.9G   209.7G        N/A     806      500K   1,000K        N/A    
+    /home/hpc             108.7M   104.9G   209.7G        N/A     301      500K   1,000K        N/A    
     /lustre                 4.0K     0.0K     0.0K        N/A       1       80K     250K        N/A    
 ======================
 === Network traffic stats (does not include Infiniband) ======
-= HPC internal traffic (e.g. to fileservers): 308 GB in / 5 GB out
+= HPC internal traffic (e.g. to fileservers): 0 GB in / 0 GB out
 = External traffic: 0 GB in / 0 GB out
 ======================

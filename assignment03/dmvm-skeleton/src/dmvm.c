@@ -77,16 +77,14 @@ double dmvm(double *restrict y, const double *restrict a,
     }
 #ifdef NON_BLOCKING
       if ((j + 1) % 1000 == 0) {
-		      MPI_Barrier(MPI_COMM_WORLD);
-		          }
+	MPI_Barrier(MPI_COMM_WORLD);
+      }
 #endif
   }
   te = getTimeStamp();
 
   free(x_buffers[0]);
-#ifdef NON_BLOCKING
   free(x_buffers[1]);
-#endif
 
 #ifdef CHECK
   double local_sum = 0.0;
