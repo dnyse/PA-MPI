@@ -30,8 +30,8 @@ double dmvm(double *restrict y, const double *restrict a,
 
   double *x_buffers[2]; // Two buffers for rotation
   x_buffers[0] = (double *)malloc(Nmax * sizeof(double));
-#ifdef NON_BLOCKING
   x_buffers[1] = (double *)malloc(Nmax * sizeof(double));
+#ifdef NON_BLOCKING
   MPI_Request requests[2];
 #endif
   ts = getTimeStamp();
@@ -67,18 +67,16 @@ double dmvm(double *restrict y, const double *restrict a,
 #ifdef NON_BLOCKING
       if (rot != size - 1)
         MPI_Waitall(2, requests, MPI_STATUS_IGNORE);
-      b_idx = (b_idx + 1) % 2;
-
 #endif
 #ifdef BLOCKING
-      if (rot != size - 1)
-        MPI_Sendrecv_replace(x_buffers[b_idx], Nmax, MPI_DOUBLE, upperNeighbor,
-                             0, lowerNeighbor, 0, MPI_COMM_WORLD,
-                             MPI_STATUS_IGNORE);
+      if (rot != size - 1){
+              MPI_Sendrecv(x_buffers[b_idx], Nmax, MPI_DOUBLE, upperNeighbor, 0, x_buffers[(b_idx + 1) % 2], Nmax, MPI_DOUBLE, lowerNeighbor, 0,MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+      }
 #endif /* ifdef BLOCKING */
+       b_idx = (b_idx + 1) % 2;
     }
 #ifdef NON_BLOCKING
-       if ((j + 1) % 1000 == 0) {
+      if ((j + 1) % 1000 == 0) {
 		      MPI_Barrier(MPI_COMM_WORLD);
 		          }
 #endif
