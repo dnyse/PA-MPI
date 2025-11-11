@@ -12,9 +12,9 @@
 // Define which implementation to use
 // #define SERIAL
 #define PARALLEL
-#define CHECK
-// #define BLOCKING
-#define NON_BLOCKING
+//#define CHECK
+#define BLOCKING
+//#define NON_BLOCKING
 
 double dmvm(double *restrict y, const double *restrict a,
             const double *restrict x, int N, int iter, int Nlocal, int x_start,
@@ -38,7 +38,7 @@ double dmvm(double *restrict y, const double *restrict a,
   for (int j = 0; j < iter; j++) {
     b_idx = 0;
     for (int i = 0; i < Nlocal; i++) {
-      x_buffers[b_idx][i] = x[x_start + i];
+      x_buffers[b_idx][i] = x[i];
       y[i] = 0.0;
     }
 
@@ -68,6 +68,7 @@ double dmvm(double *restrict y, const double *restrict a,
       if (rot != size - 1)
         MPI_Waitall(2, requests, MPI_STATUS_IGNORE);
       b_idx = (b_idx + 1) % 2;
+
 #endif
 #ifdef BLOCKING
       if (rot != size - 1)
@@ -76,6 +77,11 @@ double dmvm(double *restrict y, const double *restrict a,
                              MPI_STATUS_IGNORE);
 #endif /* ifdef BLOCKING */
     }
+#ifdef NON_BLOCKING
+       if ((j + 1) % 1000 == 0) {
+		      MPI_Barrier(MPI_COMM_WORLD);
+		          }
+#endif
   }
   te = getTimeStamp();
 
@@ -89,10 +95,8 @@ double dmvm(double *restrict y, const double *restrict a,
   double global_sum = 0.0;
 
   for (int r = 0; r < Nlocal; r++) {
-    int r_local = x_start + r;
-    local_sum += y[r_local];
+    local_sum += y[r];
   }
-
   MPI_Reduce(&local_sum, &global_sum, 1, MPI_DOUBLE, MPI_SUM, 0,
              MPI_COMM_WORLD);
 

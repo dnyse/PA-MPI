@@ -1,0 +1,58 @@
+#!/bin/bash -l
+#SBATCH --job-name=debug_oom
+#SBATCH --output=debug_oom.out
+#SBATCH --partition=singlenode
+#SBATCH --nodes=1
+#SBATCH --ntasks-per-node=72
+#SBATCH --time=00:30:00
+#SBATCH --export=NONE
+
+unset SLURM_EXPORT_ENV
+
+module load intel intelmpi
+export I_MPI_PIN=1
+export I_MPI_DEBUG=0
+
+cd ~/PA-MPI/assignment03/dmvm-skeleton
+
+echo "======================================"
+echo "Diagnostic Tests for OOM Issue"
+echo "======================================"
+echo ""
+
+# Test 1: Configuration that worked
+echo "Test 1: 18 processes, N=1000, NITER=1000000"
+echo "Expected: SUCCESS"
+mpirun -n 18 ./exe-ICX 1000 1000000
+echo "Result: $?"
+echo ""
+
+# Test 2: Failed configuration but fewer iterations  
+echo "Test 2: 36 processes, N=1000, NITER=10"
+echo "Expected: SUCCESS (if bug is in iteration loop)"
+mpirun -n 36 ./exe-ICX 1000 10
+echo "Result: $?"
+echo ""
+
+# Test 3: Failed configuration but smaller N
+echo "Test 3: 36 processes, N=100, NITER=1000000"
+echo "Expected: SUCCESS (if problem size related)"
+mpirun -n 36 ./exe-ICX 100 1000000
+echo "Result: $?"
+echo ""
+
+# Test 4: Original failed configuration
+echo "Test 4: 36 processes, N=1000, NITER=1000000"
+echo "Expected: FAILURE (reproduce original crash)"
+mpirun -n 36 ./exe-ICX 1000 1000000
+echo "Result: $?"
+echo ""
+
+# Test 5: Memory check
+echo "Test 5: Available memory"
+free -h
+echo ""
+
+echo "======================================"
+echo "Diagnostic Complete"
+echo "======================================"

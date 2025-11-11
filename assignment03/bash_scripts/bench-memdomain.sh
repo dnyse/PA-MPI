@@ -14,7 +14,7 @@ module load likwid intel intelmpi
 export I_MPI_PIN=1
 export I_MPI_DEBUG=0
 
-FILENAME="result_bench_memdomain.csv"
+FILENAME="result_bench_memdomain_non-blocking.csv"
 
 cd ~/PA-MPI/assignment03/dmvm-skeleton
 make distclean

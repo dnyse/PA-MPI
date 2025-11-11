@@ -15,7 +15,7 @@ export I_MPI_PIN=1
 export I_MPI_DEBUG=0
 export I_MPI_PIN_PROCESSOR_LIST=0-71
 
-FILENAME="result_bench_internode.csv"
+FILENAME="result_bench_internode_blocking.csv"
 
 cd ~/PA-MPI/assignment03/dmvm-skeleton
 make distclean
