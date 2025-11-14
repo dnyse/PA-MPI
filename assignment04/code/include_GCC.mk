@@ -1,4 +1,4 @@
-CC   = gcc
+CC   = mpicc
 GCC  = gcc
 LINKER = $(CC)
 
@@ -11,4 +11,4 @@ CFLAGS   = -Ofast -ffreestanding -std=c99 $(OPENMP)
 LFLAGS   = $(OPENMP)
 DEFINES  = -D_GNU_SOURCE
 INCLUDES =
-LIBS     =
+LIBS     = -lm
