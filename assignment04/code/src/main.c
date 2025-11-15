@@ -16,6 +16,8 @@
 #include "solver.h"
 #include "timing.h"
 
+#define RED_BLACK_SOR
+
 int main(int argc, char **argv) {
   MPI_Init(&argc, &argv);
   double startTime, endTime;
@@ -35,7 +37,11 @@ int main(int argc, char **argv) {
   }
 
   startTime = getTimeStamp();
+#ifdef RED_BLACK_SOR
+  solve_red_black(&solver);
+#else 
   solve(&solver);
+#endif /* ifndef RED_BLACK_SOR */
   endTime = getTimeStamp();
   // writeResult(&solver, "p.dat");
   getResult(&solver);

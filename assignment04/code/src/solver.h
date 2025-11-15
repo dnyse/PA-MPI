@@ -25,4 +25,5 @@ extern void initSolver(Solver *, Parameter *, int problem);
 extern void getResult(Solver *);
 extern void writeResult(Solver *, double *, char *);
 extern void solve(Solver *);
+extern void solve_red_black(Solver *);
 #endif

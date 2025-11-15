@@ -74,19 +74,6 @@ void getResult(Solver *solver) {
       cursor += rcvCounts[i];
     }
   }
-  // if (solver->rank == 1 || solver->rank == 2) {
-  //   int imax = solver->imax + 2;
-  //
-  //   p = solver->p;
-  //   for (int j = 1; j < solver->jmaxLocal + 1; j++) {
-  //     printf("P of rank %d at row %d ", solver->rank, j);
-  //     for (int i = 1; i < solver->imax + 1; i++) {
-  //       printf("%f ", P(i, j));
-  //     }
-  //     printf("\n");
-  //   }
-  // }
-
   int cnt = solver->imax * solver->jmaxLocal;
   double *sendbuffer = (double *)malloc(cnt * sizeof(double));
   int idx = 0;
@@ -155,6 +142,80 @@ void initSolver(Solver *solver, Parameter *params, int problem) {
         RHS(i, j) = 0.0;
       }
     }
+  }
+}
+
+void solve_red_black(Solver *solver) {
+  int imax = solver->imax;
+  int jmax = solver->jmax;
+  int jmaxLocal = solver->jmaxLocal;
+  double eps = solver->eps;
+  int itermax = solver->itermax;
+  double dx2 = solver->dx * solver->dx;
+  double dy2 = solver->dy * solver->dy;
+  double idx2 = 1.0 / dx2;
+  double idy2 = 1.0 / dy2;
+  double factor = solver->omega * 0.5 * (dx2 * dy2) / (dx2 + dy2);
+  double *p = solver->p;
+  double *rhs = solver->rhs;
+  double epssq = eps * eps;
+  int it = 0;
+  double res = eps + 1.0;
+
+  while ((res >= epssq) && (it < itermax)) {
+    res = 0.0;
+    exchange(solver);
+
+    // adapt for mpi
+    // RED SWEEP
+    for (int j = 1; j < jmaxLocal + 1; j++) {
+      int start_i = (j % 2 != 0) ? 1 : 2;
+      for (int i = start_i; i < imax + 1; i += 2) {
+        double r =
+            RHS(i, j) - ((P(i - 1, j) - 2.0 * P(i, j) + P(i + 1, j)) * idx2 +
+                         (P(i, j - 1) - 2.0 * P(i, j) + P(i, j + 1)) * idy2);
+
+        P(i, j) -= (factor * r);
+        res += (r * r);
+      }
+    }
+
+    // BLACK SWEEP
+    for (int j = 1; j < jmaxLocal + 1; j++) {
+      int start_i = (j % 2 != 0) ? 2 : 1;
+      for (int i = start_i; i < imax + 1; i += 2) {
+        double r =
+            RHS(i, j) - ((P(i - 1, j) - 2.0 * P(i, j) + P(i + 1, j)) * idx2 +
+                         (P(i, j - 1) - 2.0 * P(i, j) + P(i, j + 1)) * idy2);
+
+        P(i, j) -= (factor * r);
+        res += (r * r);
+      }
+    }
+
+    for (int i = 1; i < imax + 1; i++) {
+      P(i, 0) = P(i, 1);
+      P(i, jmaxLocal + 1) = P(i, jmaxLocal);
+    }
+
+    for (int j = 1; j < jmaxLocal + 1; j++) {
+      P(0, j) = P(1, j);
+      P(imax + 1, j) = P(imax, j);
+    }
+
+    MPI_Allreduce(MPI_IN_PLACE, &res, 1, MPI_DOUBLE, MPI_SUM, MPI_COMM_WORLD);
+    res = res / (double)(imax * jmax);
+#ifdef DEBUG
+    if (solver->rank == 0) {
+      printf("%d Residuum: %e\n", it, res);
+    }
+#endif
+    it++;
+  }
+
+  if (solver->rank == 0) {
+    printf("Solver took %d iterations to reach %f using omega=%f\n", it,
+           sqrt(res), solver->omega);
   }
 }
 
@@ -230,7 +291,7 @@ void writeResult(Solver *solver, double *p_global, char *filename) {
 
   for (int j = 0; j < jmax; j++) {
     for (int i = 0; i < imax; i++) {
-			fprintf(fp, "%f ", p_global[j * imax + i]);
+      fprintf(fp, "%f ", p_global[j * imax + i]);
     }
     fprintf(fp, "\n");
   }
