@@ -62,7 +62,6 @@ void getResult(Solver *solver) {
 
   if (solver->rank == 0) {
     p = allocate(64, (solver->imax + 2) * (solver->jmax + 2) * sizeof(double));
-		printf("Complete p dim [%d,%d]", solver->imax + 2, solver -> jmax + 2);
     rcvCounts = (int *)malloc((solver->size) * sizeof(int));
     displs = (int *)malloc(solver->size * sizeof(int));
     rcvCounts[0] = solver->imax * solver->jmaxLocal;
@@ -75,6 +74,18 @@ void getResult(Solver *solver) {
       cursor += rcvCounts[i];
     }
   }
+  // if (solver->rank == 1 || solver->rank == 2) {
+  //   int imax = solver->imax + 2;
+  //
+  //   p = solver->p;
+  //   for (int j = 1; j < solver->jmaxLocal + 1; j++) {
+  //     printf("P of rank %d at row %d ", solver->rank, j);
+  //     for (int i = 1; i < solver->imax + 1; i++) {
+  //       printf("%f ", P(i, j));
+  //     }
+  //     printf("\n");
+  //   }
+  // }
 
   int cnt = solver->imax * solver->jmaxLocal;
   double *sendbuffer = (double *)malloc(cnt * sizeof(double));
@@ -87,7 +98,7 @@ void getResult(Solver *solver) {
   MPI_Gatherv(sendbuffer, cnt, MPI_DOUBLE, p, rcvCounts, displs, MPI_DOUBLE, 0,
               MPI_COMM_WORLD);
   if (solver->rank == 0) {
-    writeResult(solver, "p.dat");
+    writeResult(solver, p, "p.dat");
     free(p);
   }
   free(sendbuffer);
@@ -128,8 +139,7 @@ void initSolver(Solver *solver, Parameter *params, int problem) {
   for (int j = 0; j < jmaxLocal + 2; j++) {
     for (int i = 0; i < imax + 2; i++) {
       y_global = solver->ys + j * dy;
-      P(i, j) =
-          sin(2.0 * PI * i * dx * 2.0) + sin(2.0 * PI * y_global * 2.0);
+      P(i, j) = sin(2.0 * PI * i * dx * 2.0) + sin(2.0 * PI * y_global * 2.0);
     }
   }
 
@@ -180,8 +190,6 @@ void solve(Solver *solver) {
         res += (r * r);
       }
     }
-
-    // adapt for mpi
     for (int i = 1; i < imax + 1; i++) {
       P(i, 0) = P(i, 1);
       P(i, jmaxLocal + 1) = P(i, jmaxLocal);
@@ -208,10 +216,9 @@ void solve(Solver *solver) {
   }
 }
 
-void writeResult(Solver *solver, char *filename) {
+void writeResult(Solver *solver, double *p_global, char *filename) {
   int imax = solver->imax;
   int jmax = solver->jmax;
-  double *p = solver->p;
 
   FILE *fp;
   fp = fopen(filename, "w");
@@ -221,9 +228,9 @@ void writeResult(Solver *solver, char *filename) {
     exit(EXIT_FAILURE);
   }
 
-  for (int j = 0; j < jmax + 2; j++) {
-    for (int i = 0; i < imax + 2; i++) {
-      fprintf(fp, "%f ", P(i, j));
+  for (int j = 0; j < jmax; j++) {
+    for (int i = 0; i < imax; i++) {
+			fprintf(fp, "%f ", p_global[j * imax + i]);
     }
     fprintf(fp, "\n");
   }
