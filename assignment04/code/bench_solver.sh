@@ -8,7 +8,7 @@
 #SBATCH --export=NONE
 #SBATCH --cpu-freq=2400000-2400000:performance
 #SBATCH --mail-type=ALL
-#SBATCH --mail-user=dennys.huber@fau.de # Email address for notification
+#SBATCH --mail-user=${EMAIL} # Email address for notification
 
 unset SLURM_EXPORT_ENV
 
@@ -30,51 +30,46 @@ EXE_RB="./exe-RB"
 
 # --- Functions ---
 
+# --- Main Execution ---
 _run_test() {
     local ranks=$1
-    local solver_type=$2 # 'STD' or 'RB'
+    local solver_type=$2 # Can be 'STD' or 'RB'
     local omega=$3
     local N=$4
     local tag=$5
-    local executable_path # Determined by solver_type
 
-    # 1. Select the correct executable path
-    if [ "${solver_type}" == "RB" ]; then
-        executable_path="${EXE_RB}"
-    else
-        executable_path="${EXE_STD}"
-    fi
+    # ... (Update poisson.par and compilation logic remains the same) ...
 
-    # 2. Update poisson.par with the new omega, imax, and jmax values
-    sed -i "s/^omg[[:space:]]\+.*$/omg        ${omega}/" "${CONFIG_FILE}"
-    sed -i "s/^imax[[:space:]]\+.*$/imax       ${N}/" "${CONFIG_FILE}"
-    sed -i "s/^jmax[[:space:]]\+.*$/jmax       ${N}/" "${CONFIG_FILE}"
-
-    # 3. Set MPI process pinning
+    # 4. Set MPI process pinning
     np_1=$(($ranks - 1))
     export I_MPI_PIN_PROCESSOR_LIST=0-$np_1
 
     echo "Running ${solver_type} Solver: Ranks=${ranks}, N=${N}x${N}, Omega=${omega}"
 
-    # 4. Run the selected executable
+    # The grep now captures the "Solver took..." and "Walltime..." lines
     result=$(mpirun -n ${ranks} "${executable_path}" "${CONFIG_FILE}" 2>&1 | \
              grep -E "Walltime|Solver took")
 
-    # 5. Extract and Write Results (no change to this logic)
-    WALLTIME=$(echo "${result}" | grep "Walltime" | awk '{print $2}' | sed 's/s//')
+    # Extract Walltime and Iterations
+    # NITER is the 3rd field: "Solver took [28172]..."
     NITER=$(echo "${result}" | grep "Solver took" | awk '{print $3}')
-    CONVERGENCE=$(echo "${result}" | grep "Solver took" | awk '{print $5}')
+    
+    # CONVERGENCE is the 7th field: "...to reach [0.000001]..."
+    CONVERGENCE=$(echo "${result}" | grep "Solver took" | awk '{print $7}') # <-- CORRECTED FIELD NUMBER
 
+    # WALLTIME is the 2nd field of the Walltime line, with 's' removed.
+    WALLTIME=$(echo "${result}" | grep "Walltime" | awk '{print $2}' | sed 's/s//')
+
+    # Check if solver completed (NITER found) or failed (NITER is empty)
     if [ -z "$NITER" ]; then
         NITER="FAIL"
         WALLTIME="FAIL"
         CONVERGENCE="FAIL"
     fi
 
+    # 5. Write results to CSV
     echo "${ranks},${N},${omega},${solver_type},${NITER},${CONVERGENCE},${WALLTIME},${tag}" >> $FILENAME
 }
-
-# --- Main Execution ---
 
 cd "${BASE_DIR}"
 make distclean

@@ -16,7 +16,7 @@
 #define PI 3.14159265358979323846
 #define P(i, j) p[(j) * (imax + 2) + (i)]
 #define RHS(i, j) rhs[(j) * (imax + 2) + (i)]
-#define DEBUG
+// #define DEBUG
 
 static int sizeOfRank(int rank, int size, int N) {
   // If the rank is smaller than the rest, receive an additional row
