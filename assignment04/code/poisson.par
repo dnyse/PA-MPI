@@ -16,6 +16,6 @@ jmax       100
 
 itermax  500000
 eps      0.000001	# stopping tolerance for pressure iteration
-omg        1.1
+omg      1.1
 
 #===============================================================================
