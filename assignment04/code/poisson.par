@@ -8,14 +8,14 @@ name poisson
 
 xlength    1.0		# domain size in x-direction
 ylength    1.0		# domain size in y-direction
-imax       100		# number of interior cells in x-direction
-jmax       100		# number of interior cells in y-direction
+imax       100
+jmax       100
 
 # Pressure Iteration Data:
 # -----------------------
 
-itermax  1000000		# maximal number of pressure iteration in one time step
+itermax  500000
 eps      0.000001	# stopping tolerance for pressure iteration
-omg      1.1		# relaxation parameter for SOR iteration
+omg        1.1
 
 #===============================================================================

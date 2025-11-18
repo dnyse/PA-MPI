@@ -179,7 +179,7 @@ void solve_red_black(Solver *solver) {
         res += (r * r);
       }
     }
-
+    exchange(solver);
     // BLACK SWEEP
     for (int j = 1; j < jmaxLocal + 1; j++) {
       int start_i = (j % 2 != 0) ? 2 : 1;
