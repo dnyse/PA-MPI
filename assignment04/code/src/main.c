@@ -38,9 +38,11 @@ int main(int argc, char **argv) {
 
   startTime = getTimeStamp();
 #ifdef RED_BLACK_SOR
-	printf("Using RED_BLACK_SOR solver");
+  if (solver.rank == 0) {
+    printf("Using RED_BLACK_SOR solver\n");
+  }
   solve_red_black(&solver);
-#else 
+#else
   solve(&solver);
 #endif /* ifndef RED_BLACK_SOR */
   endTime = getTimeStamp();

@@ -162,6 +162,14 @@ void solve_red_black(Solver *solver) {
   int it = 0;
   double res = eps + 1.0;
 
+  int j_global_start;
+  int extra_rows = jmax % solver->size;
+  int rank_size = sizeOfRank(solver->rank, solver->size, jmax);
+
+  j_global_start = solver->rank < extra_rows
+                       ? rank_size * solver->rank
+                       : rank_size * solver->rank + extra_rows;
+
   while ((res >= epssq) && (it < itermax)) {
     res = 0.0;
     exchange(solver);
@@ -169,7 +177,8 @@ void solve_red_black(Solver *solver) {
     // adapt for mpi
     // RED SWEEP
     for (int j = 1; j < jmaxLocal + 1; j++) {
-      int start_i = (j % 2 != 0) ? 1 : 2;
+      int j_global = j_global_start + j;
+      int start_i = (j_global & 1) ? 1 : 2;
       for (int i = start_i; i < imax + 1; i += 2) {
         double r =
             RHS(i, j) - ((P(i - 1, j) - 2.0 * P(i, j) + P(i + 1, j)) * idx2 +
@@ -182,7 +191,8 @@ void solve_red_black(Solver *solver) {
     exchange(solver);
     // BLACK SWEEP
     for (int j = 1; j < jmaxLocal + 1; j++) {
-      int start_i = (j % 2 != 0) ? 2 : 1;
+      int j_global = j_global_start + j;
+      int start_i = (j_global & 1) ? 2 : 1;
       for (int i = start_i; i < imax + 1; i += 2) {
         double r =
             RHS(i, j) - ((P(i - 1, j) - 2.0 * P(i, j) + P(i + 1, j)) * idx2 +
@@ -193,9 +203,15 @@ void solve_red_black(Solver *solver) {
       }
     }
 
-    for (int i = 1; i < imax + 1; i++) {
-      P(i, 0) = P(i, 1);
-      P(i, jmaxLocal + 1) = P(i, jmaxLocal);
+    if (solver->rank == 0) {
+      for (int i = 1; i < imax + 1; i++) {
+        P(i, 0) = P(i, 1);
+      }
+    }
+    if (solver->rank == solver->size - 1) {
+      for (int i = 1; i < imax + 1; i++) {
+        P(i, jmaxLocal + 1) = P(i, jmaxLocal);
+      }
     }
 
     for (int j = 1; j < jmaxLocal + 1; j++) {
@@ -251,9 +267,15 @@ void solve(Solver *solver) {
         res += (r * r);
       }
     }
-    for (int i = 1; i < imax + 1; i++) {
-      P(i, 0) = P(i, 1);
-      P(i, jmaxLocal + 1) = P(i, jmaxLocal);
+    if (solver->rank == 0) {
+      for (int i = 1; i < imax + 1; i++) {
+        P(i, 0) = P(i, 1); // Bottom boundary
+      }
+    }
+    if (solver->rank == solver->size - 1) {
+      for (int i = 1; i < imax + 1; i++) {
+        P(i, jmaxLocal + 1) = P(i, jmaxLocal); // Top boundary
+      }
     }
 
     for (int j = 1; j < jmaxLocal + 1; j++) {

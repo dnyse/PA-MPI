@@ -19,7 +19,7 @@ export I_MPI_DEBUG=0
 # --- Configuration ---
 BASE_DIR="."
 CONFIG_FILE="./poisson.par"
-DOMAIN_SIZES=(100 200 300)
+DOMAIN_SIZES=(100 200 300 400)
 RANKS=(1 2 4 8 16 32 64 72)
 OMEGAS=(1.1 1.5 1.8 1.95)
 FILENAME="solver_scalability_results.csv"
@@ -108,6 +108,7 @@ mv "${BASE_DIR}/exe-ICC" "${EXE_STD}"
 
 echo "--- COMPILATION: Red-Black SOR Solver ---"
 # Compile Red-Black (RB) version (-DRED_BLACK_SOR)
+make distclean
 make -C "${BASE_DIR}" DEFINES="-DRED_BLACK_SOR -D_GNU_SOURCE"
 mv "${BASE_DIR}/exe-ICC" "${EXE_RB}"
 
