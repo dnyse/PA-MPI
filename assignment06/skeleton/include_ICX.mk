@@ -1,4 +1,4 @@
-CC   = icx
+CC   = mpiicx
 GCC  = gcc
 LINKER = $(CC)
 
@@ -9,6 +9,6 @@ endif
 VERSION  = --version
 CFLAGS   =  -O3 -xHost -qopt-zmm-usage=high -std=c99 $(OPENMP)
 LFLAGS   = $(OPENMP)
-DEFINES  = -D_GNU_SOURCE
+DEFINES  = -D_GNU_SOURCE -DDEBUG -D_MPI
 INCLUDES =
 LIBS     =
