@@ -466,10 +466,31 @@ void commInit(Comm *c, int argc, char **argv) {
 void commPartition(Comm *c, int kmax, int jmax, int imax) {
 #if defined(_MPI)
   // setup MPI cartesian topology
+  int dims[NDIMS] = {0, 0, 0};
+  int periods[NDIMS] = {0, 0, 0};
+
+  MPI_Dims_create(c->size, NDIMS, dims);
+  MPI_Cart_create(MPI_COMM_WORLD, NDIMS, dims, periods, 0, &c->comm);
+
+  MPI_Cart_coords(c->comm, c->rank, NDIMS, c->coords);
+  MPI_Cart_shift(c->comm, IDIM, 1, &c->neighbours[LEFT], &c->neighbours[RIGHT]);
+  MPI_Cart_shift(c->comm, JDIM, 1, &c->neighbours[BOTTOM], &c->neighbours[TOP]);
+  MPI_Cart_shift(c->comm, KDIM, 1, &c->neighbours[FRONT], &c->neighbours[BACK]);
+
+  c->dims[ICORD] = dims[IDIM];
+  c->dims[JCORD] = dims[JDIM];
+  c->dims[KCORD] = dims[KDIM];
+
+  c->imaxLocal = sizeOfRank(c->coords[ICORD], dims[IDIM], imax);
+  c->jmaxLocal = sizeOfRank(c->coords[JCORD], dims[JDIM], jmax);
+  c->kmaxLocal = sizeOfRank(c->coords[KCORD], dims[KDIM], kmax);
 
   // setup buffer types for communication
-  setupCommunication(c, LEFT, BULK);
   // call for all other cases
+  for (int dir = LEFT; dir < NDIRS; dir++) {
+    setupCommunication(c, dir, BULK);
+    setupCommunication(c, dir, HALO);
+  }
 #else
   c->imaxLocal = imax;
   c->jmaxLocal = jmax;
