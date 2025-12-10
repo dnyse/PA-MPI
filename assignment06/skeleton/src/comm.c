@@ -5,7 +5,7 @@
  * license that can be found in the LICENSE file.
  */
 
-// #define _MPI
+#define _MPI
 #if defined(_MPI)
 #include <mpi.h>
 #endif
@@ -176,8 +176,8 @@ static void assembleResult(Comm *c, double *src, double *dst, int imaxLocal[],
       // prepare variables
       MPI_Datatype domainType;
 
-      int oldSizes[NDIMS] = {imax, jmax, kmax};
-      int newSizes[NDIMS] = {imaxLocal[i], jmaxLocal[i], kmaxLocal[i]};
+      int oldSizes[NDIMS] = {kmax, jmax, imax};
+      int newSizes[NDIMS] = {kmaxLocal[i], jmaxLocal[i], imaxLocal[i]};
       int starts[NDIMS] = {offset[i * NDIMS + KDIM], offset[i * NDIMS + JDIM],
                            offset[i * NDIMS + IDIM]};
 
@@ -473,17 +473,17 @@ void commPartition(Comm *c, int kmax, int jmax, int imax) {
   MPI_Cart_create(MPI_COMM_WORLD, NDIMS, dims, periods, 0, &c->comm);
 
   MPI_Cart_coords(c->comm, c->rank, NDIMS, c->coords);
-  MPI_Cart_shift(c->comm, IDIM, 1, &c->neighbours[LEFT], &c->neighbours[RIGHT]);
-  MPI_Cart_shift(c->comm, JDIM, 1, &c->neighbours[BOTTOM], &c->neighbours[TOP]);
-  MPI_Cart_shift(c->comm, KDIM, 1, &c->neighbours[FRONT], &c->neighbours[BACK]);
+  MPI_Cart_shift(c->comm, ICORD, 1, &c->neighbours[LEFT],
+                 &c->neighbours[RIGHT]);
+  MPI_Cart_shift(c->comm, JCORD, 1, &c->neighbours[BOTTOM],
+                 &c->neighbours[TOP]);
+  MPI_Cart_shift(c->comm, KCORD, 1, &c->neighbours[FRONT],
+                 &c->neighbours[BACK]);
+  MPI_Cart_get(c->comm, NCORDS, c->dims, periods, c->coords);
 
-  c->dims[ICORD] = dims[IDIM];
-  c->dims[JCORD] = dims[JDIM];
-  c->dims[KCORD] = dims[KDIM];
-
-  c->imaxLocal = sizeOfRank(c->coords[ICORD], dims[IDIM], imax);
-  c->jmaxLocal = sizeOfRank(c->coords[JCORD], dims[JDIM], jmax);
-  c->kmaxLocal = sizeOfRank(c->coords[KCORD], dims[KDIM], kmax);
+  c->imaxLocal = sizeOfRank(c->coords[ICORD], c->dims[ICORD], imax);
+  c->jmaxLocal = sizeOfRank(c->coords[JCORD], c->dims[JCORD], jmax);
+  c->kmaxLocal = sizeOfRank(c->coords[KCORD], c->dims[KCORD], kmax);
 
   // setup buffer types for communication
   // call for all other cases
