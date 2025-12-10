@@ -1,5 +1,5 @@
 #!/bin/bash
-#SBATCH --job-name=3D-Solver-Serial           # Job name
+#SBATCH --job-name=3D-Solver-Parallel           # Job name
 #SBATCH --output=%x_%j.out          # Output file (%x=job-name, %j=job-id)
 #SBATCH --error=%x_%j.err           # Error file
 #SBATCH --partition=singlenode           # Partition/queue name
@@ -25,8 +25,8 @@ make distclean
 make
 
 echo "Run Canal Serial"
-srun -n 20 ./exe-ICX canal.par
+srun -n 50 ./exe-ICX canal.par
 echo "Run Dcavity Serial"
-srun -n 20 ./exe-ICX dcavity.par
+srun -n 64 ./exe-ICX dcavity.par
 
 echo "Job finished on $(date)"

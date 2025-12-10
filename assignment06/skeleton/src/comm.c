@@ -5,7 +5,6 @@
  * license that can be found in the LICENSE file.
  */
 
-#define _MPI
 #if defined(_MPI)
 #include <mpi.h>
 #endif
@@ -37,118 +36,69 @@ static void setupCommunication(Comm *c, Direction direction, int layer) {
   sizes[JDIM] = jmaxLocal + 2;
   sizes[KDIM] = kmaxLocal + 2;
 
+  offset = layer == HALO ? 1 : 0;
+
   // prepare all required variables
 
+  switch (direction) {
+  case LEFT:
+    subSizes[IDIM] = 1;
+    subSizes[JDIM] = jmaxLocal;
+    subSizes[KDIM] = kmaxLocal;
+    starts[IDIM] = 1 - offset;
+    starts[JDIM] = 1; // exclude corner
+    starts[KDIM] = 1; // exclude corner
+    break;
+  case RIGHT:
+    subSizes[IDIM] = 1;
+    subSizes[JDIM] = jmaxLocal;
+    subSizes[KDIM] = kmaxLocal;
+    starts[IDIM] = imaxLocal + offset;
+    starts[JDIM] = 1;
+    starts[KDIM] = 1;
+    break;
+  case BOTTOM:
+    subSizes[IDIM] = imaxLocal;
+    subSizes[JDIM] = 1;
+    subSizes[KDIM] = kmaxLocal;
+    starts[IDIM] = 1;
+    starts[JDIM] = 1 - offset;
+    starts[KDIM] = 1;
+    break;
+  case TOP:
+    subSizes[IDIM] = imaxLocal;
+    subSizes[JDIM] = 1;
+    subSizes[KDIM] = kmaxLocal;
+    starts[IDIM] = 1;
+    starts[JDIM] = jmaxLocal + offset;
+    starts[KDIM] = 1;
+    break;
+  case FRONT:
+    subSizes[IDIM] = imaxLocal;
+    subSizes[JDIM] = jmaxLocal;
+    subSizes[KDIM] = 1;
+    starts[IDIM] = 1;
+    starts[JDIM] = 1;
+    starts[KDIM] = 1 - offset;
+    break;
+  case BACK:
+    subSizes[IDIM] = imaxLocal;
+    subSizes[JDIM] = jmaxLocal;
+    subSizes[KDIM] = 1;
+    starts[IDIM] = 1;
+    starts[JDIM] = 1;
+    starts[KDIM] = kmaxLocal + offset;
+    break;
+  case NDIRS:
+    printf("ERROR!\n");
+    break;
+  }
+
   if (layer == HALO) {
-    switch (direction) {
-    case LEFT:
-      subSizes[IDIM] = 1;
-      subSizes[JDIM] = jmaxLocal;
-      subSizes[KDIM] = kmaxLocal;
-      starts[IDIM] = 0;
-      starts[JDIM] = 1; // exclude corner
-      starts[KDIM] = 1; // exclude corner
-      break;
-    case RIGHT:
-      subSizes[IDIM] = 1;
-      subSizes[JDIM] = jmaxLocal;
-      subSizes[KDIM] = kmaxLocal;
-      starts[IDIM] = imaxLocal + 1;
-      starts[JDIM] = 1;
-      starts[KDIM] = 1;
-      break;
-    case BOTTOM:
-      subSizes[IDIM] = imaxLocal;
-      subSizes[JDIM] = 1;
-      subSizes[KDIM] = kmaxLocal;
-      starts[IDIM] = 1;
-      starts[JDIM] = 0;
-      starts[KDIM] = 1;
-      break;
-    case TOP:
-      subSizes[IDIM] = imaxLocal;
-      subSizes[JDIM] = 1;
-      subSizes[KDIM] = kmaxLocal;
-      starts[IDIM] = 1;
-      starts[JDIM] = jmaxLocal + 1;
-      starts[KDIM] = 1;
-      break;
-    case FRONT:
-      subSizes[IDIM] = imaxLocal;
-      subSizes[JDIM] = jmaxLocal;
-      subSizes[KDIM] = 1;
-      starts[IDIM] = 1;
-      starts[JDIM] = 1;
-      starts[KDIM] = 0;
-      break;
-    case BACK:
-      subSizes[IDIM] = imaxLocal;
-      subSizes[JDIM] = jmaxLocal;
-      subSizes[KDIM] = 1;
-      starts[IDIM] = 1;
-      starts[JDIM] = 1;
-      starts[KDIM] = kmaxLocal + 1;
-      break;
-    case NDIRS:
-      printf("ERROR!\n");
-      break;
-    }
     MPI_Type_create_subarray(NDIMS, sizes, subSizes, starts, MPI_ORDER_C,
                              MPI_DOUBLE, &c->rbufferTypes[direction]);
     MPI_Type_commit(&c->rbufferTypes[direction]);
   } else if (layer == BULK) {
-    switch (direction) {
-    case LEFT:
-      subSizes[IDIM] = 1;
-      subSizes[JDIM] = jmaxLocal;
-      subSizes[KDIM] = kmaxLocal;
-      starts[IDIM] = 1;
-      starts[JDIM] = 1;
-      starts[KDIM] = 1;
-      break;
-    case RIGHT:
-      subSizes[IDIM] = 1;
-      subSizes[JDIM] = jmaxLocal;
-      subSizes[KDIM] = kmaxLocal;
-      starts[IDIM] = imaxLocal;
-      starts[JDIM] = 1;
-      starts[KDIM] = 1;
-      break;
-    case BOTTOM:
-      subSizes[IDIM] = imaxLocal;
-      subSizes[JDIM] = 1;
-      subSizes[KDIM] = kmaxLocal;
-      starts[IDIM] = 1;
-      starts[JDIM] = 1;
-      starts[KDIM] = 1;
-      break;
-    case TOP:
-      subSizes[IDIM] = imaxLocal;
-      subSizes[JDIM] = 1;
-      subSizes[KDIM] = kmaxLocal;
-      starts[IDIM] = 1;
-      starts[JDIM] = jmaxLocal;
-      starts[KDIM] = 1;
-      break;
-    case FRONT:
-      subSizes[IDIM] = imaxLocal;
-      subSizes[JDIM] = jmaxLocal;
-      subSizes[KDIM] = 1;
-      starts[IDIM] = 1;
-      starts[JDIM] = 1;
-      starts[KDIM] = 1;
-      break;
-    case BACK:
-      subSizes[IDIM] = imaxLocal;
-      subSizes[JDIM] = jmaxLocal;
-      subSizes[KDIM] = 1;
-      starts[IDIM] = 1;
-      starts[JDIM] = 1;
-      starts[KDIM] = kmaxLocal;
-      break;
-    case NDIRS:
-      break;
-    }
     MPI_Type_create_subarray(NDIMS, sizes, subSizes, starts, MPI_ORDER_C,
                              MPI_DOUBLE, &c->sbufferTypes[direction]);
     MPI_Type_commit(&c->sbufferTypes[direction]);
@@ -470,7 +420,7 @@ void commPartition(Comm *c, int kmax, int jmax, int imax) {
   int periods[NDIMS] = {0, 0, 0};
 
   MPI_Dims_create(c->size, NDIMS, dims);
-  MPI_Cart_create(MPI_COMM_WORLD, NDIMS, dims, periods, 0, &c->comm);
+  MPI_Cart_create(MPI_COMM_WORLD, NCORDS, dims, periods, 0, &c->comm);
 
   MPI_Cart_coords(c->comm, c->rank, NDIMS, c->coords);
   MPI_Cart_shift(c->comm, ICORD, 1, &c->neighbours[LEFT],
@@ -481,43 +431,34 @@ void commPartition(Comm *c, int kmax, int jmax, int imax) {
                  &c->neighbours[BACK]);
   MPI_Cart_get(c->comm, NCORDS, c->dims, periods, c->coords);
 
-  c->imaxLocal = sizeOfRank(c->coords[ICORD], c->dims[ICORD], imax);
-  c->jmaxLocal = sizeOfRank(c->coords[JCORD], c->dims[JCORD], jmax);
-  c->kmaxLocal = sizeOfRank(c->coords[KCORD], c->dims[KCORD], kmax);
+  c->imaxLocal = sizeOfRank(c->rank, dims[ICORD], imax);
+  c->jmaxLocal = sizeOfRank(c->rank, dims[JCORD], jmax);
+  c->kmaxLocal = sizeOfRank(c->rank, dims[KCORD], kmax);
+
+	// c->imaxLocal = sizeOfRank(c->coords[ICORD], dims[ICORD], imax);
+ //  c->jmaxLocal = sizeOfRank(c->rank[JCORD], dims[JCORD], jmax);
+ //  c->kmaxLocal = sizeOfRank(c->rank[KCORD], dims[KCORD], kmax);
+
 
   // setup buffer types for communication
   // call for all other cases
-  for (int dir = LEFT; dir < NDIRS; dir++) {
-    setupCommunication(c, dir, BULK);
-    setupCommunication(c, dir, HALO);
-  }
+  setupCommunication(c, LEFT, BULK);
+  setupCommunication(c, LEFT, HALO);
+  setupCommunication(c, RIGHT, BULK);
+  setupCommunication(c, RIGHT, HALO);
+  setupCommunication(c, BOTTOM, BULK);
+  setupCommunication(c, BOTTOM, HALO);
+  setupCommunication(c, TOP, BULK);
+  setupCommunication(c, TOP, HALO);
+  setupCommunication(c, FRONT, BULK);
+  setupCommunication(c, FRONT, HALO);
+  setupCommunication(c, BACK, BULK);
+  setupCommunication(c, BACK, HALO);
+
 #else
   c->imaxLocal = imax;
   c->jmaxLocal = jmax;
   c->kmaxLocal = kmax;
-#endif
-}
-
-void commGetOffsets(Comm *c, int offsets[], int kmax, int jmax, int imax) {
-#if defined(_MPI)
-  int sum = 0;
-
-  for (int i = 0; i < c->coords[ICORD]; i++) {
-    sum += sizeOfRank(i, c->dims[ICORD], imax);
-  }
-  offsets[IDIM] = sum;
-  sum = 0;
-
-  for (int i = 0; i < c->coords[JCORD]; i++) {
-    sum += sizeOfRank(i, c->dims[JCORD], jmax);
-  }
-  offsets[JDIM] = sum;
-  sum = 0;
-
-  for (int i = 0; i < c->coords[KCORD]; i++) {
-    sum += sizeOfRank(i, c->dims[KCORD], kmax);
-  }
-  offsets[KDIM] = sum;
 #endif
 }
 
