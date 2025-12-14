@@ -96,7 +96,7 @@ int main(int argc, char** argv)
         s.grid.imax);
 
     if (commIsMaster(&s.comm)) {
-        VtkOptions opts = { .grid = s.grid };
+        VtkOptions opts = { .grid = s.grid, .comm=s.comm, .p=p };
         vtkOpen(&opts, s.problem);
         vtkScalar(&opts, "pressure", pg);
         vtkVector(&opts, "velocity", (VtkVector) { ug, vg, wg });
