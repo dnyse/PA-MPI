@@ -9,9 +9,12 @@
 #include <stdio.h>
 #include <string.h>
 
+#include "allocate.h"
 #include "comm.h"
 #include "vtkWriter.h"
-#define G(v, i, j, k) v[(k) * imax * jmax + (j) * imax + (i)]
+// #define G(v, i, j, k) v[(k) * imax * jmax + (j) * imax + (i)]
+#define G(v, i, j, k)                                                          \
+  v[(k) * (imaxLocal + 2) * (jmaxLocal + 2) + (j) * (imaxLocal + 2) + (i)]
 
 // reset fileview for output of string headers
 static void resetFileview(VtkOptions *o) {
@@ -117,9 +120,9 @@ void vtkOpen(VtkOptions *o, char *problem) {
 //   if (o->fmt == BINARY)
 //     fprintf(o->fh, "\n");
 // }
-
-static bool isInitialized(MPI_File ptr) {
-  if (ptr == NULL) {
+//
+static bool isInitialized(MPI_File *ptr) {
+  if (*ptr == MPI_FILE_NULL) {
     printf("vtkWriter not initialize! Call vtkOpen first!\n");
     return false;
   }
@@ -131,7 +134,7 @@ void vtkScalar(VtkOptions *o, char *name, double *s) {
   // Steps to perform MPI IO
   // 1. Use resetFileview(o); here before starting MPI IO
   resetFileview(o);
-  if (!isInitialized(o->fh))
+  if (!isInitialized(&(o->fh)))
     return;
 
   // 2. Write header (only rank 0)
@@ -231,7 +234,7 @@ void vtkVector(VtkOptions *o, char *name, VtkVector vec) {
   int imax = o->p.imax;
 
   printf("Register vector %s\n", name);
-  if (!isInitialized(o->fh))
+  if (!isInitialized(&(o->fh)))
     return;
 
   // 2. Write header (only rank 0)
