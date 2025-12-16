@@ -96,7 +96,8 @@ int main(int argc, char **argv) {
                     s.grid.jmax, s.grid.imax);
 
   if (commIsMaster(&s.comm)) {
-    VtkOptions opts = {.grid = s.grid, .comm = s.comm, .p = p, .fmt = 1};
+    enum VtkFormat format = BINARY;
+    VtkOptions opts = {.grid = s.grid, .comm = s.comm, .p = p, .fmt = format};
     vtkOpen(&opts, s.problem);
     vtkScalar(&opts, "pressure", pg);
     vtkVector(&opts, "velocity", (VtkVector){ug, vg, wg});
